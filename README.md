@@ -28,7 +28,7 @@ capistrano-s3 overrides the default Capistrano recipes for Rails projects with i
 
 ```ruby
 # config/deploy.rb
-require 'capistrano-s3'
+require 'capistrano/s3'
 
 set :bucket, "www.cool-website-bucket.com"
 set :access_key_id, "CHANGETHIS"

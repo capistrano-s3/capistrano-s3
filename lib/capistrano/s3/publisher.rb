@@ -1,5 +1,6 @@
 require 'aws/s3'
 require 'mime/types'
+require 'fileutils'
 
 module Publisher
 

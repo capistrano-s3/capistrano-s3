@@ -42,6 +42,14 @@ set :access_key_id, "CHANGETHIS"
 set :secret_access_key, "CHANGETHIS"
 ```
 
+_Note_: If you are using S3 in non-default region (e.g. EU), you should provide
+corresponding
+[endpoint](http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region) 
+via configuration option
+```ruby
+set :s3_endpoint, 's3-eu-west-1.amazonaws.com'
+```
+
 ### Deploying
 
 Add content to you public folder and deploy with :

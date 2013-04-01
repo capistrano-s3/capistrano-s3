@@ -6,8 +6,8 @@ module Publisher
 
   LAST_PUBLISHED_FILE = '.last_published'
 
-  def self.publish!(key, secret, bucket, source, extra_options)
-    s3 = self.establish_connection!(key, secret)
+  def self.publish!(s3_endpoint, key, secret, bucket, source, extra_options)
+    s3 = self.establish_connection!(s3_endpoint, key, secret)
 
     self.files(source).each do |file|
       if !File.directory?(file)
@@ -37,18 +37,19 @@ module Publisher
     FileUtils.touch(LAST_PUBLISHED_FILE)
   end
 
-  def self.clear!(key, secret, bucket)    
-    s3 = self.establish_connection!(key, secret)
+  def self.clear!(s3_endpoint, key, secret, bucket)
+    s3 = self.establish_connection!(s3_endpoint, key, secret)
     s3.buckets[bucket].clear!
   end
 
   private
 
     # Establishes the connection to Amazon S3
-    def self.establish_connection!(key, secret)
+    def self.establish_connection!(s3_endpoint, key, secret)
       # Send logging to STDOUT
       AWS.config(:logger => Logger.new(STDOUT))
       AWS::S3.new(
+        :s3_endpoint => s3_endpoint,
         :access_key_id => key,
         :secret_access_key => secret
       )

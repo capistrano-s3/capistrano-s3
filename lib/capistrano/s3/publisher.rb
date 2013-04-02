@@ -26,7 +26,7 @@ module Publisher
         else
           options = {
             :acl => :public_read,
-            :content_type => types[0]
+            :content_type => types.first.content_type
           }
         end
         options.merge!(extra_options)

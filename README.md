@@ -60,6 +60,19 @@ If you want to deploy to multiple buckets, have a look at
 [Capistrano multistage](https://github.com/capistrano/capistrano/wiki/2.x-Multistage-Extension)
 and configure a bucket per stage configuration.
 
+#### Redirecting
+
+Use `:redirect_options` to natively redirect (via HTTP 301 status code)
+any hosted page. For example:
+```ruby
+set :redirect_options, {
+  'index.html' => 'http://example.org',
+  'another.html' => '/test.html',
+}
+```
+Valid redirect destination should either start with `http` or `https` scheme,
+or begin with leading slash `/`.
+
 #### S3 write options
 
 capistrano-s3 sets files `:content_type` and `:acl` to `:public_read`, add or override with :
@@ -70,9 +83,9 @@ set :bucket_write_options, {
 }
 ```
 
-See aws-sdk [S3Object.write doc](http://docs.aws.amazon.com/AWSRubySDK/latest/AWS/S3/S3Object.html#write-instance_method) for all available options.
+See aws-sdk [S3Client.put_object doc](http://docs.aws.amazon.com/AWSRubySDK/latest/AWS/S3/Client.html#put_object-instance_method) for all available options.
 
-## Exemple of usage
+## Example of usage
 
 Our Ruby stack for static websites :
 
@@ -90,7 +103,9 @@ before 'deploy' do
 end
 ```
 
-See our boilerplate [sinatra-static-bp](https://github.com/hooktstudios/sinatra-static-bp) for an exemple of the complete setup.
+See our boilerplate
+[sinatra-static-bp](https://github.com/hooktstudios/sinatra-static-bp)
+for an example of the complete setup.
 
 ## Contributing
 

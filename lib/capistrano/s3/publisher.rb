@@ -81,7 +81,7 @@ module Publisher
 
     def self.build_content_type_hash(file)
       type = MIME::Types.type_for(File.basename(file))
-      return {} unless type
+      return {} unless type && !type.empty?
 
       { :content_type => type.first.content_type }
     end

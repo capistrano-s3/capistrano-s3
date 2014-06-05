@@ -37,7 +37,7 @@ module Capistrano
       # Establishes the connection to Amazon S3
       def self.establish_connection!(klass, s3_endpoint, key, secret)
         # Send logging to STDOUT
-        AWS.config(:logger => Logger.new(STDOUT))
+        AWS.config(:logger => ::Logger.new(STDOUT))
         klass.new(
           :s3_endpoint => s3_endpoint,
           :access_key_id => key,

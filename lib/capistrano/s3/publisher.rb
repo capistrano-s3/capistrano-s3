@@ -74,6 +74,7 @@ module Capistrano::S3::Publisher
 
       options.merge!(self.build_content_type_hash(file))
       options.merge!(self.build_redirect_hash(path, extra_options[:redirect]))
+      options.merge!(self.set_vary_accept_encoding(file))
       options.merge!(extra_options[:write]) if extra_options[:write]
 
       s3.put_object(options)
@@ -90,5 +91,12 @@ module Capistrano::S3::Publisher
       return {} unless redirect_options && redirect_options[path]
 
       { :website_redirect_location => redirect_options[path] }
+    end
+
+    def self.set_vary_accept_encoding(file)
+      if (File.exist? "#{file}.gz") || (file.match(/\.gz$/) && File.exist?(file.match(/(.*)\.gz$/)[1]))
+        return { :metadata => { "Vary" => "Accept-Encoding" } }
+      end
+      {}
     end
 end

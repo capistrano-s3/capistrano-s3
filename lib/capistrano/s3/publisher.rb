@@ -34,7 +34,9 @@ module Capistrano
             :invalidation_batch => {
               :paths => {
                 :quantity => invalidations.count,
-                :items => invalidations.map { |path| File.join('/', target_path, path) }
+                :items => invalidations.map do |path|
+                  File.join('/', self.add_prefix(path, prefix: target_path))
+                end
               },
               :caller_reference => SecureRandom.hex
             }
@@ -110,7 +112,7 @@ module Capistrano
           mime_type = mime_type_for_file(base_name)
           options   = {
             :bucket => bucket,
-            :key    => File.join(target_path, path),
+            :key    => self.add_prefix(path, prefix: target_path),
             :body   => open(file),
             :acl    => 'public-read',
           }
@@ -126,7 +128,7 @@ module Capistrano
               options.merge!(build_gzip_content_type_hash(file, mime_type))
 
               # upload as original file name
-              options.merge!(key: File.join(target_path, self.orig_name(path))) if only_gzip
+              options.merge!(key: self.add_prefix(self.orig_name(path), prefix: target_path)) if only_gzip
             end
           end
 
@@ -171,6 +173,14 @@ module Capistrano
 
         def self.orig_name(file)
           file.sub(/\.gz$/, "")
+        end
+
+        def self.add_prefix(path, prefix:)
+          if prefix.empty?
+            path
+          else
+            File.join(prefix, path)
+          end
         end
     end
   end

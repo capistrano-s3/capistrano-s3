@@ -5,17 +5,17 @@ require 'fileutils'
 module Capistrano
   module S3
     module Publisher
-      LAST_PUBLISHED_FILE = '.last_published'
+      LAST_PUBLISHED_FOLDER = '.last_published'
       LAST_INVALIDATION_FILE = '.last_invalidation'
 
-      def self.publish!(region, key, secret, bucket, deployment_path, target_path, distribution_id, invalidations, exclusions, only_gzip, extra_options)
+      def self.publish!(stage, region, key, secret, bucket, deployment_path, target_path, distribution_id, invalidations, exclusions, only_gzip, extra_options)
         deployment_path_absolute = File.expand_path(deployment_path, Dir.pwd)
         s3 = self.establish_s3_client_connection!(region, key, secret)
         updated = false
 
         self.files(deployment_path_absolute, exclusions).each do |file|
           if !File.directory?(file)
-            next if self.published?(file)
+            next if self.published?(stage, file)
             next if only_gzip && self.has_gzipped_version?(file)
 
             path = self.base_file_path(deployment_path_absolute, file)
@@ -47,14 +47,15 @@ module Capistrano
           end
         end
 
-        FileUtils.touch(LAST_PUBLISHED_FILE)
+        FileUtils.mkdir_p(LAST_PUBLISHED_FOLDER)
+        FileUtils.touch(last_published_file(stage))
       end
 
-      def self.clear!(region, key, secret, bucket)
+      def self.clear!(stage, region, key, secret, bucket)
         s3 = self.establish_s3_connection!(region, key, secret)
         s3.buckets[bucket].clear!
 
-        FileUtils.rm(LAST_PUBLISHED_FILE)
+        FileUtils.rm(last_published_file(stage))
         FileUtils.rm(LAST_INVALIDATION_FILE)
       end
 
@@ -102,9 +103,13 @@ module Capistrano
           Dir.glob("#{deployment_path}/**/*") - Dir.glob(exclusions.map { |e| "#{deployment_path}/#{e}" })
         end
 
-        def self.published?(file)
-          return false unless File.exists? LAST_PUBLISHED_FILE
-          File.mtime(file) < File.mtime(LAST_PUBLISHED_FILE)
+        def self.last_published_file(stage)
+          "#{LAST_PUBLISHED_FOLDER}/#{stage}"
+        end
+
+        def self.published?(stage, file)
+          return false unless File.exists? last_published_file(stage)
+          File.mtime(file) < File.mtime(last_published_file(stage))
         end
 
         def self.put_object(s3, bucket, target_path, path, file, only_gzip, extra_options)

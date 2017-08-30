@@ -22,11 +22,12 @@ module Capistrano
             path.gsub!(/^\//, "") # Remove preceding slash for S3
 
             self.put_object(s3, bucket, target_path, path, file, only_gzip, extra_options)
+            updated = true
           end
         end
 
         # invalidate CloudFront distribution if needed
-        if distribution_id && !invalidations.empty?
+        if distribution_id && !invalidations.empty? && updated
           cf = self.establish_cf_client_connection!(region, key, secret)
 
           response = cf.create_invalidation({

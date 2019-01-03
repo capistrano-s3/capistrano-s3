@@ -21,7 +21,7 @@ module Capistrano
 
         desc "Upload files to the bucket in the current state"
         task :upload_files do
-          extra_options = { :write => bucket_write_options, :redirect => redirect_options }
+          extra_options = { :write => bucket_write_options, :redirect => redirect_options, :object_write => object_write_options }
           S3::Publisher.publish!(region, access_key_id, secret_access_key,
                              bucket, deployment_path, target_path, distribution_id, invalidations, exclusions, only_gzip, extra_options)
         end

@@ -104,6 +104,10 @@ set :target_path, 'app'
 
 ### Write options
 
+See aws-sdk [S3Client.put_object doc](http://docs.aws.amazon.com/AWSRubySDK/latest/AWS/S3/Client.html#put_object-instance_method) for all available options both for `bucket_write_options` and `object_write_options`.
+
+#### Bucket-level options
+
 capistrano-s3 sets files `:content_type` and `:acl` to `public-read`, add or override with:
 
 ```ruby
@@ -112,7 +116,38 @@ set :bucket_write_options, {
 }
 ```
 
-See aws-sdk [S3Client.put_object doc](http://docs.aws.amazon.com/AWSRubySDK/latest/AWS/S3/Client.html#put_object-instance_method) for all available options.
+#### Object-level options
+
+You can also set write options for files matching specific [patterns](https://ruby-doc.org/core-2.3.0/Dir.html#method-c-glob) using:
+
+```ruby
+set :object_write_options, {
+  'index.html' => { cache_control: 'no-cache' }
+}
+```
+
+or in a more advanced scenario
+
+```ruby
+set :object_write_options, {
+  'assets/**' => { cache_control: 'public, max-age=86400' },
+  'index.html' => { cache_control: 'no-cache' }
+}
+```
+
+**NOTES:**
+
+* `object_write_options` are evaulated **after** `bucket_write_options` and can override them
+* Also the pattern matching for `object_write_options` is evaluated in the order of definition and overrides on match down the chain. For example defining
+
+```ruby
+set :object_write_options, {
+  'assets/my-script.js' => { cache_control: 'no-cache' },
+  'assets/**' => { cache_control: 'public, max-age=86400' }
+}
+```
+
+will set `Cache-Control: public, max-age=86400` header on `assets/my-script.js` as well!
 
 ### Redirecting
 

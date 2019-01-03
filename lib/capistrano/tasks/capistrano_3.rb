@@ -18,7 +18,7 @@ namespace :deploy do
 
     desc "Upload files to the bucket in the current state"
     task :upload_files do
-      extra_options = { :write => fetch(:bucket_write_options), :redirect => fetch(:redirect_options) }
+      extra_options = { :write => fetch(:bucket_write_options), :redirect => fetch(:redirect_options), :object_write => fetch(:object_write_options) }
       Capistrano::S3::Publisher.publish!(fetch(:region), fetch(:access_key_id), fetch(:secret_access_key),
                              fetch(:bucket), fetch(:deployment_path), fetch(:target_path), fetch(:distribution_id), fetch(:invalidations), fetch(:exclusions), fetch(:only_gzip), extra_options, fetch(:stage))
     end

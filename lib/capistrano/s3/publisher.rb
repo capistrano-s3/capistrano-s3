@@ -149,6 +149,13 @@ module Capistrano
           options.merge!(build_redirect_hash(path, extra_options[:redirect]))
           options.merge!(extra_options[:write] || {})
 
+          object_write_options = extra_options[:object_write] || {}
+          object_write_options.each do |pattern, object_options|
+            if File.fnmatch(pattern, options[:key])
+              options.merge!(object_options)
+            end
+          end
+
           if mime_type
             options.merge!(build_content_type_hash(mime_type))
 

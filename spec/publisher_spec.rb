@@ -71,5 +71,69 @@ describe Capistrano::S3::Publisher do
         Capistrano::S3::Publisher.publish!('s3.amazonaws.com', 'abc', '123', 'mybucket.amazonaws.com', 'spec/sample', '', 'cf123', [], exclude_paths, false, {}, 'staging')
       end
     end
+
+    context "write options" do
+      it "sets bucket write options to all files" do
+        headers = { cache_control: 'no-cache' }
+        extra_options = { write: headers }
+
+        Aws::S3::Client.any_instance.expects(:put_object).with() { |options| contains(options, headers) }.times(3)
+        Capistrano::S3::Publisher.publish!('s3.amazonaws.com', 'abc', '123', 'mybucket.amazonaws.com', 'spec/sample-write', '', 'cf123', [], [], false, extra_options, 'staging')
+      end
+
+      it "sets object write options to a single file" do
+        headers = { cache_control: 'no-cache', acl: :private }
+        extra_options = {
+          object_write: {
+            'index.html' => headers
+          }
+        }
+
+        Aws::S3::Client.any_instance.expects(:put_object).with { |options| options[:key] == 'index.html' && contains(options, headers) }.once
+        Aws::S3::Client.any_instance.expects(:put_object).with { |options| options[:key] != 'index.html' && !contains(options, headers) }.twice
+        Capistrano::S3::Publisher.publish!('s3.amazonaws.com', 'abc', '123', 'mybucket.amazonaws.com', 'spec/sample-write', '', 'cf123', [], [], false, extra_options, 'staging')
+      end
+
+      it "sets object write options to a directory" do
+        asset_headers = { cache_control: 'max-age=3600' }
+        index_headers = { cache_control: 'no-cache' }
+        extra_options = {
+          object_write: {
+            'assets/**' => asset_headers,
+            'index.html' => index_headers
+          }
+        }
+
+        Aws::S3::Client.any_instance.expects(:put_object).with { |options| options[:key] == 'index.html' && !contains(options, asset_headers) && contains(options, index_headers) }.once
+        Aws::S3::Client.any_instance.expects(:put_object).with { |options| options[:key] != 'index.html' && !contains(options, index_headers) && contains(options, asset_headers) }.twice
+        Capistrano::S3::Publisher.publish!('s3.amazonaws.com', 'abc', '123', 'mybucket.amazonaws.com', 'spec/sample-write', '', 'cf123', [], [], false, extra_options, 'staging')
+      end
+
+      it "sets object write permissions in the order of definition" do
+        asset_headers = { cache_control: 'max-age=3600' }
+        js_headers = { cache_control: 'no-cache' }
+        extra_options = { object_write: { 'assets/**' => asset_headers, 'assets/script.js' => js_headers } }
+
+        Aws::S3::Client.any_instance.expects(:put_object).with { |options| options[:key] == 'assets/script.js' && !contains(options, asset_headers) && contains(options, js_headers) }.once
+        Aws::S3::Client.any_instance.expects(:put_object).with { |options| options[:key] == 'assets/style.css' && !contains(options, js_headers) && contains(options, asset_headers) }.once
+        Aws::S3::Client.any_instance.expects(:put_object).with { |options| options[:key] == 'index.html' && !contains(options, js_headers) && !contains(options, asset_headers) }.once
+        Capistrano::S3::Publisher.publish!('s3.amazonaws.com', 'abc', '123', 'mybucket.amazonaws.com', 'spec/sample-write', '', 'cf123', [], [], false, extra_options, 'staging')
+      end
+
+      it "overwrites object write permissions with wrong ordering" do
+        js_headers = { cache_control: 'no-cache' }
+        asset_headers = { cache_control: 'max-age=3600' }
+        extra_options = {
+          object_write: {
+            'assets/script.js' => js_headers,
+            'assets/**' => asset_headers
+          }
+        }
+
+        Aws::S3::Client.any_instance.expects(:put_object).with { |options| options[:key] != 'index.html' && !contains(options, js_headers) && contains(options, asset_headers) }.twice
+        Aws::S3::Client.any_instance.expects(:put_object).with { |options| options[:key] == 'index.html' && !contains(options, js_headers) && !contains(options, asset_headers) }.once
+        Capistrano::S3::Publisher.publish!('s3.amazonaws.com', 'abc', '123', 'mybucket.amazonaws.com', 'spec/sample-write', '', 'cf123', [], [], false, extra_options, 'staging')
+      end
+    end
   end
 end

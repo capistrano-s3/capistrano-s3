@@ -13,10 +13,10 @@ module Capistrano
       LAST_INVALIDATION_FILE = ".last_invalidation"
 
       class << self
-        def publish!(region, key, secret, bucket, deployment_path, target_path, distribution_id,
+        def publish!(region, key, secret, assume_role, bucket, deployment_path, target_path, distribution_id,
                      invalidations, exclusions, only_gzip, extra_options, stage = "default")
           deployment_path_absolute = File.expand_path(deployment_path, Dir.pwd)
-          s3_client = establish_s3_client_connection!(region, key, secret)
+          s3_client = establish_s3_client_connection!(region, key, secret, assume_role)
 
           files(deployment_path_absolute, exclusions).each do |file|
             next if File.directory?(file)
@@ -31,7 +31,7 @@ module Capistrano
 
           # invalidate CloudFront distribution if needed
           if distribution_id && !invalidations.empty?
-            cf = establish_cf_client_connection!(region, key, secret)
+            cf = establish_cf_client_connection!(region, key, secret, assume_role)
 
             response = cf.create_invalidation(
               distribution_id: distribution_id,
@@ -55,7 +55,7 @@ module Capistrano
         end
 
         def clear!(region, key, secret, bucket, stage = "default")
-          s3 = establish_s3_connection!(region, key, secret)
+          s3 = establish_s3_connection!(region, key, secret, assume_role)
           s3.buckets[bucket].clear!
 
           clear_published!(bucket, stage)
@@ -65,7 +65,7 @@ module Capistrano
         def check_invalidation(region, key, secret, distribution_id, _stage = "default")
           last_invalidation_id = File.read(LAST_INVALIDATION_FILE).strip
 
-          cf = establish_cf_client_connection!(region, key, secret)
+          cf = establish_cf_client_connection!(region, key, secret, assume_role)
           cf.wait_until(:invalidation_completed, distribution_id: distribution_id,
                                                  id: last_invalidation_id) do |w|
             w.max_attempts = nil
@@ -76,27 +76,50 @@ module Capistrano
         private
 
         # Establishes the connection to Amazon S3
-        def establish_connection!(klass, region, key, secret)
-          # Send logging to STDOUT
-          Aws.config[:logger] = ::Logger.new(STDOUT)
-          Aws.config[:log_formatter] = Aws::Log::Formatter.colored
-          klass.new(
+        def establish_connection!(klass, region, key, secret, assume_role)
+
+          # shared args
+          args = {
             region: region,
             access_key_id: key,
             secret_access_key: secret
-          )
+          }
+
+          # Assume STS role if provided
+          if assume_role
+
+            # get the username for naming the session
+            iam = Aws::IAM::Client.new(args)
+            username = iam.get_user.user.user_name
+
+            # assume role
+            sts_client = Aws::STS::Client.new(args)
+            role_credentials = Aws::AssumeRoleCredentials.new(
+              client: sts_client,
+              role_arn: assume_role,
+              role_session_name: username
+            )
+
+            # update args with assumed role credentials for +klass.new+
+            args[:credentials] = role_credentials if role_credentials
+          end
+
+          # Send logging to STDOUT
+          Aws.config[:logger] = ::Logger.new(STDOUT)
+          Aws.config[:log_formatter] = Aws::Log::Formatter.colored
+          klass.new(args)
         end
 
-        def establish_cf_client_connection!(region, key, secret)
-          establish_connection!(Aws::CloudFront::Client, region, key, secret)
+        def establish_cf_client_connection!(region, key, secret, assume_role)
+          establish_connection!(Aws::CloudFront::Client, region, key, secret, assume_role)
         end
 
-        def establish_s3_client_connection!(region, key, secret)
-          establish_connection!(Aws::S3::Client, region, key, secret)
+        def establish_s3_client_connection!(region, key, secret, assume_role)
+          establish_connection!(Aws::S3::Client, region, key, secret, assume_role)
         end
 
-        def establish_s3_connection!(region, key, secret)
-          establish_connection!(Aws::S3, region, key, secret)
+        def establish_s3_connection!(region, key, secret, assume_role)
+          establish_connection!(Aws::S3, region, key, secret, assume_role)
         end
 
         def base_file_path(root, file)

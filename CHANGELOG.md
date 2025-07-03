@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v3.0.0.pre (2025-07-03)
+
+Major change : Require Ruby >= 2.5 (**preliminary**)
+Change : Support Ruby 3.x (introduces dependency on "webrick") (#62)
+Misc : Code processed/auto-fixed by Rubocop linter (#56)
+
 ## v2.4.0
 
 Feature : Add option to prefer CloudFront compression supported MIME types (#54) 

@@ -23,7 +23,7 @@ Gem::Specification.new do |s|
   s.name = "capistrano-s3"
   s.require_paths = ["lib"]
   s.version = Capistrano::S3::VERSION
-  s.cert_chain = ["certs/j15e.pem"]
+  s.cert_chain = ["certs/aleksandrs-ledovskis--2025-07-03-2035-07-01.pem"]
   s.signing_key = File.expand_path("~/.ssh/gem-private_key.pem") if $PROGRAM_NAME.end_with?("gem")
 
   # Min rubies

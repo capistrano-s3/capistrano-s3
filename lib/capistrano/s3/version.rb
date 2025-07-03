@@ -2,6 +2,6 @@
 
 module Capistrano
   module S3
-    VERSION = "2.4.0"
+    VERSION = "3.0.0.pre"
   end
 end

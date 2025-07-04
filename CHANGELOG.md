@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## v3.0.0.pre (2025-07-04)
+## v3.0.0.pre2 (2025-07-04)
 
 Fix : Explicitly add runtime dependency on "rexml" to support CloudFront operations with Ruby 3.0+.
 

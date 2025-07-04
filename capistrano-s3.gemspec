@@ -33,6 +33,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "aws-sdk",    "~> 2.6"
   s.add_runtime_dependency "capistrano", ">= 2"
   s.add_runtime_dependency "mime-types"
+  s.add_runtime_dependency "rexml" # XML parsing
   s.add_runtime_dependency "webrick" # Temporary, while 'aws-sdk' is < 3.0
 
   s.metadata["rubygems_mfa_required"] = "true"

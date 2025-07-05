@@ -181,7 +181,6 @@ Just add to your configuration:
 ```ruby
 set :only_gzip, true
 ```
-
 ### CloudFront invalidation
 
 If you set a CloudFront distribution ID (not the URL!) and an array of paths, capistrano-s3 will post an invalidation request. CloudFront supports wildcard invalidations. For example:
@@ -221,6 +220,14 @@ You can enable to prefer CloudFront-supported MIME types over the "best" ones by
 
 ```ruby
 set :prefer_cf_mime_types, true
+```
+
+### Assume Role
+
+Optionally, you may specify an IAM Role ARN [to assume](https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html) before deploying:
+
+```ruby 
+set :assume_role, 'ROLE_ARN'
 ```
 
 ## Example of usage

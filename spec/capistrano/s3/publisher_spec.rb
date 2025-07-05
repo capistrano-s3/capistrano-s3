@@ -28,13 +28,13 @@ describe Capistrano::S3::Publisher do
   describe "publish!" do
     it "publish all files" do
       Aws::S3::Client.any_instance.expects(:put_object).times(8)
-      described_class.publish!("s3.amazonaws.com", "abc", "123", "mybucket.amazonaws.com",
+      described_class.publish!("s3.amazonaws.com", "abc", "123", nil, "mybucket.amazonaws.com",
                                "spec/sample", "", "cf123", [], [], false, {}, "staging")
     end
 
     it "publish only gzip files when option is enabled" do
       Aws::S3::Client.any_instance.expects(:put_object).times(4)
-      described_class.publish!("s3.amazonaws.com", "abc", "123", "mybucket.amazonaws.com",
+      described_class.publish!("s3.amazonaws.com", "abc", "123", nil, "mybucket.amazonaws.com",
                                "spec/sample", "", "cf123", [], [], true, {}, "staging")
     end
 
@@ -43,7 +43,7 @@ describe Capistrano::S3::Publisher do
         Aws::S3::Client.any_instance.expects(:put_object).times(8)
         Aws::CloudFront::Client.any_instance.expects(:create_invalidation).once
 
-        described_class.publish!("s3.amazonaws.com", "abc", "123", "mybucket.amazonaws.com",
+        described_class.publish!("s3.amazonaws.com", "abc", "123", nil, "mybucket.amazonaws.com",
                                  "spec/sample", "", "cf123", ["*"], [], false, {}, "staging")
       end
 
@@ -51,7 +51,7 @@ describe Capistrano::S3::Publisher do
         Aws::S3::Client.any_instance.expects(:put_object).times(8)
         Aws::CloudFront::Client.any_instance.expects(:create_invalidation).never
 
-        described_class.publish!("s3.amazonaws.com", "abc", "123", "mybucket.amazonaws.com",
+        described_class.publish!("s3.amazonaws.com", "abc", "123", nil, "mybucket.amazonaws.com",
                                  "spec/sample", "", "cf123", [], [], false, {}, "staging")
       end
     end
@@ -61,7 +61,7 @@ describe Capistrano::S3::Publisher do
         Aws::S3::Client.any_instance.expects(:put_object).times(7)
 
         exclude_paths = ["fonts/cantarell-regular-webfont.svg"]
-        described_class.publish!("s3.amazonaws.com", "abc", "123", "mybucket.amazonaws.com",
+        described_class.publish!("s3.amazonaws.com", "abc", "123", nil, "mybucket.amazonaws.com",
                                  "spec/sample", "", "cf123", [], exclude_paths, false, {},
                                  "staging")
       end
@@ -71,7 +71,7 @@ describe Capistrano::S3::Publisher do
 
         exclude_paths = ["fonts/cantarell-regular-webfont.svg",
                          "fonts/cantarell-regular-webfont.svg.gz"]
-        described_class.publish!("s3.amazonaws.com", "abc", "123", "mybucket.amazonaws.com",
+        described_class.publish!("s3.amazonaws.com", "abc", "123", nil, "mybucket.amazonaws.com",
                                  "spec/sample", "", "cf123", [], exclude_paths, false, {},
                                  "staging")
       end
@@ -80,7 +80,7 @@ describe Capistrano::S3::Publisher do
         Aws::S3::Client.any_instance.expects(:put_object).times(0)
 
         exclude_paths = ["fonts/**/*"]
-        described_class.publish!("s3.amazonaws.com", "abc", "123", "mybucket.amazonaws.com",
+        described_class.publish!("s3.amazonaws.com", "abc", "123", nil, "mybucket.amazonaws.com",
                                  "spec/sample", "", "cf123", [], exclude_paths, false, {},
                                  "staging")
       end
@@ -94,7 +94,7 @@ describe Capistrano::S3::Publisher do
         Aws::S3::Client.any_instance.expects(:put_object).with do |options|
           contains(options, headers)
         end.times(3)
-        described_class.publish!("s3.amazonaws.com", "abc", "123", "mybucket.amazonaws.com",
+        described_class.publish!("s3.amazonaws.com", "abc", "123", nil, "mybucket.amazonaws.com",
                                  "spec/sample-write", "", "cf123", [], [], false, extra_options,
                                  "staging")
       end
@@ -113,7 +113,7 @@ describe Capistrano::S3::Publisher do
         Aws::S3::Client.any_instance.expects(:put_object).with do |options|
           options[:key] != "index.html" && !contains(options, headers)
         end.twice
-        described_class.publish!("s3.amazonaws.com", "abc", "123", "mybucket.amazonaws.com",
+        described_class.publish!("s3.amazonaws.com", "abc", "123", nil, "mybucket.amazonaws.com",
                                  "spec/sample-write", "", "cf123", [], [], false, extra_options,
                                  "staging")
       end
@@ -137,7 +137,7 @@ describe Capistrano::S3::Publisher do
             !contains(options, index_headers) &&
             contains(options, asset_headers)
         end.twice
-        described_class.publish!("s3.amazonaws.com", "abc", "123", "mybucket.amazonaws.com",
+        described_class.publish!("s3.amazonaws.com", "abc", "123", nil, "mybucket.amazonaws.com",
                                  "spec/sample-write", "", "cf123", [], [], false, extra_options,
                                  "staging")
       end
@@ -161,7 +161,7 @@ describe Capistrano::S3::Publisher do
           options[:key] == "index.html" && !contains(options, js_headers) &&
             !contains(options, asset_headers)
         end.once
-        described_class.publish!("s3.amazonaws.com", "abc", "123", "mybucket.amazonaws.com",
+        described_class.publish!("s3.amazonaws.com", "abc", "123", nil, "mybucket.amazonaws.com",
                                  "spec/sample-write", "", "cf123", [], [], false, extra_options,
                                  "staging")
       end
@@ -184,7 +184,7 @@ describe Capistrano::S3::Publisher do
           options[:key] == "index.html" && !contains(options, js_headers) &&
             !contains(options, asset_headers)
         end.once
-        described_class.publish!("s3.amazonaws.com", "abc", "123", "mybucket.amazonaws.com",
+        described_class.publish!("s3.amazonaws.com", "abc", "123", nil, "mybucket.amazonaws.com",
                                  "spec/sample-write", "", "cf123", [], [], false, extra_options,
                                  "staging")
       end
@@ -195,7 +195,7 @@ describe Capistrano::S3::Publisher do
         Aws::S3::Client.any_instance.expects(:put_object).with do |options|
           options[:content_type] == "application/javascript"
         end.once
-        described_class.publish!("s3.amazonaws.com", "abc", "123", "mybucket.amazonaws.com",
+        described_class.publish!("s3.amazonaws.com", "abc", "123", nil, "mybucket.amazonaws.com",
                                  "spec/sample-mime", "", "cf123", [], [], false, {}, "staging")
       end
 
@@ -205,10 +205,19 @@ describe Capistrano::S3::Publisher do
         Aws::S3::Client.any_instance.expects(:put_object).with do |options|
           options[:content_type] == "application/javascript"
         end.once
-        described_class.publish!("s3.amazonaws.com", "abc", "123", "mybucket.amazonaws.com",
+        described_class.publish!("s3.amazonaws.com", "abc", "123", nil, "mybucket.amazonaws.com",
                                  "spec/sample-mime", "", "cf123", [], [], false, extra_options,
                                  "staging")
       end
     end
+
+    context "with assume role" do
+      it "publish all files" do
+        Aws::S3::Client.any_instance.expects(:put_object).times(8)
+        described_class.publish!("s3.amazonaws.com", "abc", "123", 'arn:aws:iam::111222333444:role/DeployRole', "mybucket.amazonaws.com",
+                                 "spec/sample", "", "", [], [], false, {}, "staging")
+      end
+    end
+
   end
 end

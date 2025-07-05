@@ -32,10 +32,11 @@ namespace :deploy do
         prefer_cf_mime_types: fetch(:prefer_cf_mime_types)
       }
       Capistrano::S3::Publisher.publish!(fetch(:region), fetch(:access_key_id),
-                                         fetch(:secret_access_key), fetch(:bucket),
-                                         fetch(:deployment_path), fetch(:target_path),
-                                         fetch(:distribution_id), fetch(:invalidations),
-                                         fetch(:exclusions), fetch(:only_gzip), extra_options,
+                                         fetch(:secret_access_key), fetch(:assume_role),
+                                         fetch(:bucket), fetch(:deployment_path),
+                                         fetch(:target_path), fetch(:distribution_id),
+                                         fetch(:invalidations), fetch(:exclusions), 
+                                         fetch(:only_gzip), extra_options,
                                          fetch(:stage))
     end
   end

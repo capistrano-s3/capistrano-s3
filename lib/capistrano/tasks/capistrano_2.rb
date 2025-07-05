@@ -31,7 +31,7 @@ module Capistrano
             object_write: object_write_options,
             prefer_cf_mime_types: prefer_cf_mime_types
           }
-          S3::Publisher.publish!(region, access_key_id, secret_access_key,
+          S3::Publisher.publish!(region, access_key_id, secret_access_key, assume_role,
                                  bucket, deployment_path, target_path, distribution_id,
                                  invalidations, exclusions, only_gzip, extra_options)
         end

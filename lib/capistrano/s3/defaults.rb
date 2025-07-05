@@ -8,6 +8,7 @@ module Capistrano
         target_path: "",
         bucket_write_options: { acl: "public-read" },
         region: "us-east-1",
+        assume_role: nil,
         redirect_options: {},
         only_gzip: false,
         invalidations: [],
